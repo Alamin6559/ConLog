@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-electron/
+release/
+*.log
+.DS_Store
+.vite/
+
+# Intermediate iconset; build/icon.icns is the committed artifact
+build/icon.iconset/

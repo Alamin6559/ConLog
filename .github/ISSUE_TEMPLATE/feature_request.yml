@@ -1,0 +1,41 @@
+name: Feature request
+description: Suggest an idea for ConLog
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ConLog has a deliberately narrow scope: make the macOS unified log
+        readable and explain what it means. Ideas that fit that are very
+        welcome.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation you hit, not just the feature you want.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would it look like?
+      description: How you imagine it working. A rough sketch is fine.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: offer
+    attributes:
+      label: Would you like to build it?
+      options:
+        - label: I'd be willing to work on this myself
+          required: false

@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Theme tokens as space-separated RGB channels so Tailwind can apply opacity
+  modifiers, e.g. bg-error/10 -> rgb(var(--c-error) / 0.1). See tailwind.config.js.
+  :root is the dark theme (default); [data-theme="light"] overrides it.
+*/
+:root, [data-theme="dark"] {
+  --c-void: 22 25 34;
+  --c-surface: 30 34 46;
+  --c-panel: 37 42 56;
+  --c-border: 54 60 78;
+  --c-muted: 69 76 99;
+  --c-dim: 118 130 160;
+  --c-subtle: 152 164 196;
+  --c-body: 212 220 240;
+  --c-bright: 242 246 255;
+  --c-accent: 95 168 255;
+  --c-accent-dim: 26 58 92;
+  --c-error: 255 93 120;
+  --c-error-dim: 61 16 32;
+  --c-warn: 255 187 85;
+  --c-warn-dim: 61 40 0;
+  --c-ok: 61 255 192;
+  --c-ok-dim: 0 61 40;
+  --c-fault: 255 125 173;
+  --c-debug: 141 155 192;
+  /* chart-only tokens */
+  --c-chart-grid: 30 33 48;
+  --c-chart-axis: 74 81 104;
+  --c-chart-legend: 107 118 148;
+  --c-chart-other: 42 46 64;
+}
+
+[data-theme="light"] {
+  --c-void: 233 237 244;
+  --c-surface: 248 250 252;
+  --c-panel: 255 255 255;
+  --c-border: 212 218 230;
+  --c-muted: 194 202 217;
+  --c-dim: 107 114 128;
+  --c-subtle: 71 85 99;
+  --c-body: 31 41 55;
+  --c-bright: 11 18 32;
+  --c-accent: 37 99 235;
+  --c-accent-dim: 219 234 254;
+  --c-error: 220 38 38;
+  --c-error-dim: 254 226 226;
+  --c-warn: 217 119 6;
+  --c-warn-dim: 254 243 199;
+  --c-ok: 5 150 105;
+  --c-ok-dim: 209 250 229;
+  --c-fault: 219 39 119;
+  --c-debug: 100 116 139;
+  --c-chart-grid: 226 232 240;
+  --c-chart-axis: 148 163 184;
+  --c-chart-legend: 71 85 105;
+  --c-chart-other: 226 232 240;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: rgb(var(--c-void));
+  color: rgb(var(--c-body));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar — kept clearly visible in both themes */
+::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+::-webkit-scrollbar-track {
+  background: rgb(var(--c-surface));
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--c-subtle) / 0.8);
+  border-radius: 7px;
+  border: 3px solid rgb(var(--c-surface));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--c-subtle));
+}
+::-webkit-scrollbar-corner {
+  background: rgb(var(--c-surface));
+}
+
+/* Font */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+code, .font-mono, pre {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}

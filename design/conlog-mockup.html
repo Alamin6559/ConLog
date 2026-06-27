@@ -1,0 +1,457 @@
+<title>ConLog — UI redesign mockup</title>
+<meta name="description" content="Interactive mockup of the redesigned ConLog macOS log viewer — light/dark, dashboard, log explorer, live stream and process drawer.">
+<style>
+  :root, [data-theme="dark"]{
+    --void:#161922; --surface:#1e222e; --panel:#252a38; --border:#363c4e; --muted:#454c63;
+    --dim:#7682a0; --subtle:#98a4c4; --body:#d4dcf0; --bright:#f2f6ff;
+    --accent:#5fa8ff; --accent-dim:#1a3a5c;
+    --error:#ff5d78; --warn:#ffbb55; --ok:#3dffc0; --fault:#ff7dad; --debug:#8d9bc0;
+    --grid:#1e2130; --axis:#4a5168; --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+  [data-theme="light"]{
+    --void:#e9edf4; --surface:#f8fafc; --panel:#ffffff; --border:#d4dae6; --muted:#c2cad9;
+    --dim:#6b7280; --subtle:#475563; --body:#1f2937; --bright:#0b1220;
+    --accent:#2563eb; --accent-dim:#dbeafe;
+    --error:#dc2626; --warn:#d97706; --ok:#059669; --fault:#db2777; --debug:#64748b;
+    --grid:#e2e8f0; --axis:#94a3b8; --shadow:0 10px 30px rgba(15,23,42,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--void); color:var(--body);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; font-size:14px; line-height:1.5;
+  }
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:var(--muted);border-radius:5px;border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-track{background:transparent}
+  button{font-family:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---- shell ---- */
+  .app{display:flex;height:100vh;overflow:hidden}
+  .sidebar{width:188px;flex-shrink:0;background:var(--void);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:14px 10px;gap:4px}
+  .brand{display:flex;align-items:center;gap:9px;padding:6px 8px 14px}
+  .brand .logo{width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;
+    display:grid;place-items:center;font-weight:700;box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 50%,transparent)}
+  .brand b{color:var(--bright);font-size:15px;letter-spacing:-.2px}
+  .brand small{display:block;color:var(--dim);font-size:11px;font-weight:500}
+  .nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--subtle);
+    font-weight:500;font-size:13px;border:1px solid transparent;width:100%;background:none;text-align:left}
+  .nav:hover{background:var(--surface);color:var(--body)}
+  .nav.active{background:var(--accent-dim);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+  .nav svg{width:17px;height:17px;flex-shrink:0}
+  .nav .dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--error);box-shadow:0 0 0 3px color-mix(in srgb,var(--error) 25%,transparent)}
+  .side-foot{margin-top:auto;padding:8px;color:var(--dim);font-size:11px}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .toolbar{height:56px;flex-shrink:0;display:flex;align-items:center;gap:14px;padding:0 18px;
+    border-bottom:1px solid var(--border);background:var(--void)}
+  .toolbar h1{font-size:16px;margin:0;color:var(--bright);letter-spacing:-.3px;font-weight:650}
+  .meta{color:var(--dim);font-size:12px}
+  .toolbar .spacer{flex:1}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:9px;
+    border:1px solid var(--border);background:var(--surface);color:var(--body);font-size:13px;font-weight:550}
+  .btn:hover{border-color:var(--muted)}
+  .btn svg{width:15px;height:15px}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{filter:brightness(1.05)}
+  .btn.ghost{background:transparent}
+  .iconbtn{display:grid;place-items:center;width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--subtle)}
+  .iconbtn:hover{color:var(--body);border-color:var(--muted)}
+  .iconbtn svg{width:17px;height:17px}
+
+  .content{flex:1;overflow-y:auto;padding:22px 24px}
+  .view{display:none}
+  .view.show{display:block}
+
+  /* ---- cards / grid ---- */
+  .grid{display:grid;gap:16px}
+  .kpis{grid-template-columns:repeat(4,1fr);margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+  .card h3{margin:0 0 12px;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:650}
+  .kpi .num{font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1}
+  .kpi .lbl{color:var(--subtle);font-size:12px;margin-top:7px}
+  .kpi .sub{color:var(--dim);font-size:11px;margin-top:2px}
+  .sec-title{display:flex;align-items:baseline;gap:10px;margin:24px 2px 12px}
+  .sec-title h2{font-size:14px;margin:0;color:var(--bright);font-weight:650}
+  .sec-title span{color:var(--dim);font-size:12px}
+
+  .twocol{grid-template-columns:1fr 1fr}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;
+    font-family:ui-monospace,Menlo,monospace}
+  .chip.error{background:color-mix(in srgb,var(--error) 14%,transparent);color:var(--error)}
+  .chip.fault{background:color-mix(in srgb,var(--fault) 16%,transparent);color:var(--fault)}
+  .chip.debug{background:color-mix(in srgb,var(--debug) 16%,transparent);color:var(--debug)}
+  .chip.info{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+  .chip.dot::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+
+  /* ---- tables ---- */
+  .tablewrap{overflow:auto;border-radius:12px;border:1px solid var(--border)}
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  thead th{position:sticky;top:0;background:var(--surface);text-align:left;padding:9px 12px;color:var(--dim);
+    font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;font-weight:650;white-space:nowrap;
+    border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+  thead th .sort{opacity:.4;font-size:9px}
+  thead th.sorted .sort{opacity:1;color:var(--accent)}
+  tbody td{padding:8px 12px;border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent);white-space:nowrap}
+  tbody tr:hover{background:var(--surface)}
+  td.msg{white-space:nowrap;max-width:560px;overflow:hidden;text-overflow:ellipsis;color:var(--body)}
+  .wrap td.msg{white-space:normal;overflow:visible;max-width:560px}
+  .pidlink{color:var(--accent);font-weight:600;background:none;border:0;padding:0;font-family:ui-monospace,Menlo,monospace}
+  .pidlink:hover{text-decoration:underline}
+  .proc{color:var(--accent)}
+  .num-r{text-align:right;font-family:ui-monospace,Menlo,monospace}
+  .bar{height:6px;border-radius:3px;background:var(--accent);display:inline-block;vertical-align:middle}
+
+  /* ---- log explorer toolbar ---- */
+  .lx-bar{display:flex;align-items:center;gap:10px;padding:12px 0;flex-wrap:wrap}
+  .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);
+    border-radius:9px;padding:7px 11px;flex:1;min-width:230px;max-width:420px}
+  .search input{border:0;background:none;color:var(--body);font-size:13px;width:100%;outline:none}
+  .seg{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px}
+  .seg button{border:0;background:none;color:var(--dim);padding:5px 11px;border-radius:7px;font-size:12px;font-weight:550}
+  .seg button.on{background:var(--accent-dim);color:var(--accent)}
+  .toggle{display:inline-flex;align-items:center;gap:7px;color:var(--subtle);font-size:12.5px;font-weight:550}
+  .switch{width:34px;height:20px;border-radius:999px;background:var(--muted);position:relative;transition:.15s;border:0}
+  .switch.on{background:var(--accent)}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+  .switch.on::after{left:16px}
+
+  /* live stream */
+  .live-dot{width:8px;height:8px;border-radius:50%;background:var(--error);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  @media (prefers-reduced-motion:reduce){.live-dot{animation:none}}
+
+  /* settings */
+  .set-card{max-width:680px}
+  .set-row{display:flex;justify-content:space-between;gap:24px;padding:18px 0;border-bottom:1px solid color-mix(in srgb,var(--border) 60%,transparent)}
+  .set-row:last-child{border:0}
+  .set-row .label{font-weight:600;color:var(--bright);font-size:14px}
+  .set-row .hint{color:var(--dim);font-size:12.5px;margin-top:3px;max-width:300px}
+  .opt{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:340px}
+  .opt button{padding:7px 13px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--subtle);font-size:13px;font-weight:550}
+  .opt button.on{background:var(--accent-dim);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+
+  /* process drawer */
+  .scrim{position:absolute;inset:0;background:rgba(2,6,23,.45);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{position:absolute;top:0;right:0;height:100%;width:430px;background:var(--panel);border-left:1px solid var(--border);
+    box-shadow:var(--shadow);transform:translateX(100%);transition:transform .22s ease;z-index:50;display:flex;flex-direction:column}
+  .drawer.show{transform:none}
+  .drawer-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+  .drawer-b{padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+  .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .pcell{background:var(--surface);border-radius:10px;padding:10px 11px}
+  .pcell .k{color:var(--dim);font-size:10.5px}
+  .pcell .v{color:var(--bright);font-size:13px;margin-top:3px;font-family:ui-monospace,Menlo,monospace}
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:7px;font-size:11px;font-weight:600}
+  .badge.root{background:color-mix(in srgb,var(--error) 15%,transparent);color:var(--error)}
+  .badge.sandbox{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+  .badge.user{background:var(--surface);color:var(--subtle);border:1px solid var(--border)}
+  .drill{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 12px}
+  .drill .row{display:flex;align-items:center;gap:10px;padding:5px 0}
+  .drill .n{color:var(--dim);font-size:11px;width:34px;text-align:right;font-family:ui-monospace,Menlo,monospace}
+  .drill .t{flex:1;font-size:12px;color:var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hint-card{border-radius:10px;padding:11px 12px;border:1px solid}
+  .hint-card.med{background:color-mix(in srgb,var(--warn) 9%,transparent);border-color:color-mix(in srgb,var(--warn) 28%,transparent)}
+  .hint-card .ht{font-weight:650;font-size:12.5px;color:var(--warn);margin-bottom:3px}
+  .hint-card .hd{font-size:12px;color:var(--subtle)}
+  .menu-note{font-size:11px;color:var(--dim);margin-top:8px}
+  .label-sm{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);font-weight:650;margin:0 0 8px}
+</style>
+
+<div class="app" id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">C</div>
+      <div><b>ConLog</b><small>macOS log viewer</small></div>
+    </div>
+    <button class="nav active" data-view="metrics" onclick="go(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+      Metrics</button>
+    <button class="nav" data-view="stream" onclick="go(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M5 12a7 7 0 0 1 14 0M2 12a10 10 0 0 1 20 0"/></svg>
+      Live Stream<span class="dot"></span></button>
+    <button class="nav" data-view="logs" onclick="go(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+      Log Explorer</button>
+    <button class="nav" data-view="settings" onclick="go(this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.3l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2.2-1.3L14 2h-4l-.3 2.4a7 7 0 0 0-2.2 1.3l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .9.1 1.3l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2.2 1.3L10 22h4l.3-2.4a7 7 0 0 0 2.2-1.3l2.4 1 2-3.4-2-1.6c.1-.4.1-.9.1-1.3Z"/></svg>
+      Settings</button>
+    <div class="side-foot">Reading unified logs<br>via the macOS <span class="mono">log</span> tool</div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="toolbar">
+      <h1 id="title">Metrics</h1>
+      <span class="meta mono" id="submeta">14,802 entries · last 1h · all levels</span>
+      <span class="spacer"></span>
+      <button class="iconbtn" id="themebtn" onclick="toggleTheme()" title="Toggle light / dark">
+        <svg id="themeicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+      </button>
+      <button class="btn" id="exportbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Export</button>
+      <button class="btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>Refresh</button>
+    </header>
+
+    <div class="content">
+      <!-- METRICS -->
+      <section class="view show" id="view-metrics">
+        <div class="grid kpis">
+          <div class="card kpi"><h3>Total entries</h3><div class="num" style="color:var(--bright)">14,802</div><div class="lbl">in the last hour</div><div class="sub">all levels</div></div>
+          <div class="card kpi"><h3>Error rate</h3><div class="num" style="color:var(--error)">4.3%</div><div class="lbl">637 errors of all entries</div><div class="sub">errors ÷ total</div></div>
+          <div class="card kpi"><h3>Fault rate</h3><div class="num" style="color:var(--fault)">0.4%</div><div class="lbl">59 critical faults</div><div class="sub">faults ÷ total</div></div>
+          <div class="card kpi"><h3>Processes</h3><div class="num" style="color:var(--accent)">142</div><div class="lbl">across 38 subsystems</div><div class="sub">unique PIDs</div></div>
+        </div>
+
+        <div class="sec-title"><h2>Errors &amp; faults over time</h2><span>last 60 minutes</span></div>
+        <div class="card">
+          <svg viewBox="0 0 900 200" width="100%" height="200" preserveAspectRatio="none" aria-label="area chart of errors and faults over time">
+            <defs>
+              <linearGradient id="gErr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--error)" stop-opacity=".35"/><stop offset="1" stop-color="var(--error)" stop-opacity="0"/></linearGradient>
+              <linearGradient id="gFlt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--fault)" stop-opacity=".35"/><stop offset="1" stop-color="var(--fault)" stop-opacity="0"/></linearGradient>
+            </defs>
+            <g stroke="var(--grid)" stroke-width="1">
+              <line x1="0" y1="50" x2="900" y2="50"/><line x1="0" y1="100" x2="900" y2="100"/><line x1="0" y1="150" x2="900" y2="150"/>
+            </g>
+            <path d="M0,150 60,120 120,135 180,90 240,110 300,70 360,95 420,55 480,80 540,40 600,75 660,60 720,95 780,70 840,110 900,85 900,200 0,200Z" fill="url(#gErr)" stroke="var(--error)" stroke-width="2"/>
+            <path d="M0,188 60,182 120,190 180,175 240,185 300,170 360,184 420,178 480,186 540,172 600,182 660,176 720,188 780,180 840,190 900,184 900,200 0,200Z" fill="url(#gFlt)" stroke="var(--fault)" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <div class="grid twocol" style="margin-top:18px">
+          <div class="card">
+            <h3>Top processes by errors</h3>
+            <div style="display:flex;flex-direction:column;gap:11px;margin-top:4px">
+              <div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span class="proc mono">WindowServer</span><span class="mono" style="color:var(--dim)">174</span></div><span class="bar" style="width:92%;background:var(--error)"></span></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span class="proc mono">ContinuityCaptureAgent</span><span class="mono" style="color:var(--dim)">26</span></div><span class="bar" style="width:34%;background:var(--error)"></span></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span class="proc mono">cloudd</span><span class="mono" style="color:var(--dim)">21</span></div><span class="bar" style="width:28%;background:var(--error)"></span></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span class="proc mono">kernel</span><span class="mono" style="color:var(--dim)">18</span></div><span class="bar" style="width:24%;background:var(--error)"></span></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span class="proc mono">liquiddetectiond</span><span class="mono" style="color:var(--dim)">14</span></div><span class="bar" style="width:19%;background:var(--warn)"></span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Severity breakdown</h3>
+            <div style="display:flex;align-items:center;gap:22px">
+              <svg viewBox="0 0 120 120" width="150" height="150" aria-label="severity donut chart">
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--surface)" stroke-width="16"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--error)" stroke-width="16" stroke-dasharray="124 165" transform="rotate(-90 60 60)"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--fault)" stroke-width="16" stroke-dasharray="14 275" stroke-dashoffset="-124" transform="rotate(-90 60 60)"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--debug)" stroke-width="16" stroke-dasharray="40 249" stroke-dashoffset="-138" transform="rotate(-90 60 60)"/>
+                <text x="60" y="56" text-anchor="middle" font-size="17" font-weight="700" fill="var(--bright)" font-family="ui-monospace,Menlo">14.8k</text>
+                <text x="60" y="72" text-anchor="middle" font-size="9" fill="var(--dim)">events</text>
+              </svg>
+              <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
+                <div><span class="chip error dot">Errors</span> <b class="mono">637</b></div>
+                <div><span class="chip fault dot">Faults</span> <b class="mono">59</b></div>
+                <div><span class="chip debug dot">Debug</span> <b class="mono">1,204</b></div>
+                <div><span class="chip info dot">Info / default</span> <b class="mono">12,902</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-title"><h2>Process summary</h2><span>click a header to sort · double-click a row to drill into its errors</span></div>
+        <div class="card" style="padding:6px">
+          <div class="tablewrap" style="border:0">
+            <table id="proctable">
+              <thead><tr>
+                <th onclick="sortHint(this)">Process <span class="sort">▾</span></th>
+                <th onclick="sortHint(this)">PID <span class="sort">▾</span></th>
+                <th onclick="sortHint(this)">Run as <span class="sort">▾</span></th>
+                <th class="sorted" onclick="sortHint(this)">Errors <span class="sort">▾</span></th>
+                <th onclick="sortHint(this)">Faults <span class="sort">▾</span></th>
+                <th onclick="sortHint(this)">Total <span class="sort">▾</span></th>
+                <th onclick="sortHint(this)">Error % <span class="sort">▾</span></th>
+              </tr></thead>
+              <tbody>
+                <tr ondblclick="openDrawer()" style="cursor:pointer"><td class="proc mono">WindowServer</td><td class="num-r"><button class="pidlink" onclick="event.stopPropagation();openDrawer()">415</button></td><td><span class="badge root">root</span></td><td class="num-r" style="color:var(--error)">174</td><td class="num-r">—</td><td class="num-r">774</td><td class="num-r">22%</td></tr>
+                <tr ondblclick="openDrawer()" style="cursor:pointer"><td class="proc mono">ContinuityCaptureAgent</td><td class="num-r"><button class="pidlink" onclick="event.stopPropagation();openDrawer()">648</button></td><td><span class="badge user">you · sandboxed</span></td><td class="num-r" style="color:var(--error)">26</td><td class="num-r">—</td><td class="num-r">598</td><td class="num-r">4%</td></tr>
+                <tr ondblclick="openDrawer()" style="cursor:pointer"><td class="proc mono">cloudd</td><td class="num-r"><button class="pidlink" onclick="event.stopPropagation();openDrawer()">714</button></td><td><span class="badge user">you</span></td><td class="num-r" style="color:var(--error)">21</td><td class="num-r">—</td><td class="num-r">316</td><td class="num-r">7%</td></tr>
+                <tr ondblclick="openDrawer()" style="cursor:pointer"><td class="proc mono">kernel</td><td class="num-r"><button class="pidlink" onclick="event.stopPropagation();openDrawer()">0</button></td><td><span class="badge root">root</span></td><td class="num-r" style="color:var(--error)">18</td><td class="num-r" style="color:var(--fault)">1</td><td class="num-r">1,952</td><td class="num-r">1%</td></tr>
+                <tr ondblclick="openDrawer()" style="cursor:pointer"><td class="proc mono">LinearMouse</td><td class="num-r"><button class="pidlink" onclick="event.stopPropagation();openDrawer()">858</button></td><td><span class="badge user">you</span></td><td class="num-r" style="color:var(--error)">5</td><td class="num-r">—</td><td class="num-r">40</td><td class="num-r">13%</td></tr>
+                <tr ondblclick="openDrawer()" style="cursor:pointer"><td class="proc mono">LuLu</td><td class="num-r"><button class="pidlink" onclick="event.stopPropagation();openDrawer()">861</button></td><td><span class="badge root">root</span></td><td class="num-r">—</td><td class="num-r" style="color:var(--fault)">4</td><td class="num-r">93</td><td class="num-r">4%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIVE STREAM -->
+      <section class="view" id="view-stream">
+        <div class="lx-bar">
+          <button class="btn primary"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Stop Stream</button>
+          <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Pause</button>
+          <span class="toggle" style="color:var(--error)"><span class="live-dot"></span> LIVE · 41/s</span>
+          <div class="seg" style="margin-left:6px"><button class="on">Errors &amp; faults</button><button>All messages</button></div>
+          <span class="spacer" style="flex:1"></span>
+          <span class="meta mono">482 captured</span>
+          <button class="btn ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Clear</button>
+        </div>
+        <div class="card" style="padding:6px">
+          <div class="tablewrap" style="border:0;max-height:60vh">
+            <table>
+              <thead><tr><th>Time</th><th>Type</th><th>PID</th><th>Process</th><th>Subsystem</th><th>Message</th></tr></thead>
+              <tbody id="streambody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- LOG EXPLORER -->
+      <section class="view" id="view-logs">
+        <div class="lx-bar">
+          <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="Filter by message, process, PID, subsystem…"></label>
+          <div class="seg"><button class="on">All</button><button>Error</button><button>Fault</button><button>Debug</button><button>Info</button></div>
+          <button class="toggle" onclick="toggleWrap()"><span class="switch" id="wrapsw"></span> Word wrap</button>
+          <span class="spacer" style="flex:1"></span>
+          <span class="meta mono">2,000 / 14,802</span>
+        </div>
+        <div class="card" style="padding:6px">
+          <div class="tablewrap" id="logwrap" style="border:0;max-height:62vh">
+            <table id="logtable">
+              <thead><tr>
+                <th>Time</th><th>Type</th><th>PID</th><th>Process</th><th>Library</th><th>Subsystem</th><th>Category</th><th>Thread</th><th>Activity</th><th>Message</th>
+              </tr></thead>
+              <tbody id="logbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="view-settings">
+        <div class="card set-card">
+          <h2 style="margin:0 0 4px;color:var(--bright);font-size:18px">Fetch settings</h2>
+          <p style="color:var(--subtle);margin:0 0 8px;font-size:13.5px">Choose the time window and detail level, then fetch historical logs. Bigger windows return more data and take longer.</p>
+          <div class="set-row">
+            <div><div class="label">Time range</div><div class="hint">How far back to read from the unified log store.</div></div>
+            <div class="opt"><button>1m</button><button>5m</button><button>15m</button><button class="on">1 hour</button><button>3h</button><button>12h</button><button>24h</button></div>
+          </div>
+          <div class="set-row">
+            <div><div class="label">Detail level</div><div class="hint">All levels keeps the error- and fault-rates meaningful. Narrow later in the Log Explorer.</div></div>
+            <div class="opt"><button class="on">All levels</button><button>Errors</button><button>Faults</button><button>Debug</button></div>
+          </div>
+          <div class="set-row">
+            <div><div class="label">Appearance</div><div class="hint">Follow your Mac’s light/dark setting, or pick one.</div></div>
+            <div class="opt"><button class="on">System</button><button>Light</button><button>Dark</button></div>
+          </div>
+          <div style="padding-top:16px"><button class="btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>Fetch logs</button></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- PROCESS DRAWER -->
+  <div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-h">
+      <div><div style="font-weight:650;color:var(--bright)">WindowServer</div><div class="mono" style="color:var(--dim);font-size:12px">PID 415</div></div>
+      <button class="iconbtn" onclick="closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="drawer-b">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge root">running as root</span>
+        <span class="badge sandbox">not sandboxed</span>
+        <span class="badge user">state: running</span>
+      </div>
+      <div>
+        <p class="label-sm">Live resource usage</p>
+        <div class="pgrid">
+          <div class="pcell"><div class="k">CPU</div><div class="v">12.4%</div></div>
+          <div class="pcell"><div class="k">Memory</div><div class="v">3.1% · 512 MB</div></div>
+          <div class="pcell"><div class="k">Threads / FDs</div><div class="v">38 · 411</div></div>
+          <div class="pcell"><div class="k">Parent (PPID)</div><div class="v">1 · launchd</div></div>
+        </div>
+        <p class="menu-note">GPU per-process needs elevated access — shown at system level only.</p>
+      </div>
+      <div>
+        <p class="label-sm">Location</p>
+        <div class="mono" style="font-size:11.5px;color:var(--subtle);background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:9px;word-break:break-all">/System/Library/PrivateFrameworks/SkyLight.framework/.../WindowServer</div>
+        <div style="display:flex;gap:8px;margin-top:9px">
+          <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h6l2 2h10v9H3z"/></svg>Show in Finder</button>
+          <button class="btn ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5h10"/></svg>Copy path</button>
+        </div>
+      </div>
+      <div>
+        <p class="label-sm">Errors grouped by pattern (174)</p>
+        <div class="drill">
+          <div class="row"><span class="n">161×</span><span class="t mono">_CGXPackagesSetWindowConstraints: Invalid window</span></div>
+          <div class="row"><span class="n">9×</span><span class="t mono">CGXGetWindowType: Invalid window 0x…</span></div>
+          <div class="row"><span class="n">4×</span><span class="t mono">Surface 0x… contextId mismatch</span></div>
+        </div>
+      </div>
+      <div>
+        <p class="label-sm">Diagnostic hint</p>
+        <div class="hint-card med">
+          <div class="ht">WindowServer constraint churn</div>
+          <div class="hd">A window applied constraints before it finished initialising. Usually benign and triggered by apps opening/resizing rapidly. Constant repetition can point to a layout bug in a foreground app.</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+  const TITLES={metrics:["Metrics","14,802 entries · last 1h · all levels"],stream:["Live Stream","streaming errors & faults"],logs:["Log Explorer","14,802 entries · last 1h · all levels"],settings:["Settings",""]};
+  function go(btn){
+    document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+    btn.classList.add('active');
+    const v=btn.dataset.view;
+    document.querySelectorAll('.view').forEach(s=>s.classList.remove('show'));
+    document.getElementById('view-'+v).classList.add('show');
+    document.getElementById('title').textContent=TITLES[v][0];
+    document.getElementById('submeta').textContent=TITLES[v][1];
+    document.getElementById('exportbtn').style.display=(v==='settings'||v==='stream')?'none':'';
+  }
+  let dark=false;
+  function toggleTheme(){
+    dark=!dark;
+    document.getElementById('app').closest('body').setAttribute('data-theme',dark?'dark':'light');
+    document.getElementById('themeicon').innerHTML = dark
+      ? '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>'
+      : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/>';
+  }
+  function toggleWrap(){document.getElementById('wrapsw').classList.toggle('on');document.getElementById('logwrap').classList.toggle('wrap')}
+  function openDrawer(){document.getElementById('drawer').classList.add('show');document.getElementById('scrim').classList.add('show')}
+  function closeDrawer(){document.getElementById('drawer').classList.remove('show');document.getElementById('scrim').classList.remove('show')}
+  function sortHint(th){th.parentNode.querySelectorAll('th').forEach(h=>h.classList.remove('sorted'));th.classList.add('sorted')}
+
+  // real-ish macOS log rows
+  const ROWS=[
+    ["10:14:58.222","error","415","WindowServer","SkyLight","com.apple.SkyLight","default","0x2acbe","926333","_CGXPackagesSetWindowConstraints: Invalid window"],
+    ["10:14:58.233","error","714","cloudd","CloudKit","com.apple.cloudkit","Request","0x2b9b9","931721","Creating internal error for itemForItemID, original error: NSError FP -1005"],
+    ["10:14:57.011","error","620","UARPUpdaterService","accessoryupdater","com.apple.accessoryupdater","core","0x203c1","0","-[UARPUSBPDUpdater releasePowerAssertionForAccessory] Already released"],
+    ["10:14:56.988","error","430","liquiddetectiond","CoreAnalytics","—","—","0x1f0aa","0","LDCM — liquiddetectiond received: <private>, unpausing LDCM"],
+    ["10:14:56.717","error","648","ContinuityCaptureAgent","AVFCapture","com.apple.CMContinuityCapture","onboard","0x2ad89","0","CMContinuityCaptureUserOnboarding No valid device to onboard"],
+    ["10:14:55.402","fault","861","LuLu","Foundation","com.objective-see.lulu","alert","0x2c110","0","XPC connection interrupted — re-establishing listener"],
+    ["10:14:54.180","error","0","kernel","IOSurface","—","—","0x117b","103285","SID: 0x0 task: <private> buffer: 0x0 not found"],
+    ["10:14:53.905","debug","876","akd","AuthKit","com.apple.authkit","core","0x203c1","932145","Fetching anisette data for primary account"],
+    ["10:14:52.108","error","470","socketfilterfw","NetworkExtension","com.apple.networkextension","flow","0x2ba75","0","No current verdict available, cannot report flow closed"],
+    ["10:14:51.206","error","21280","DisplaysExt","ImageIO","com.apple.imageio","Displays","0x26b0b","0","createImageAtIndex:262: *** ERROR: unable to create image"],
+    ["10:14:50.948","debug","714","cloudd","CloudKit","com.apple.cloudkit","Request","0x2b972","931723","Operation finished with 0 records, 1 error"],
+    ["10:14:49.771","error","415","WindowServer","SkyLight","com.apple.SkyLight","default","0x2acbe","926340","_CGXPackagesSetWindowConstraints: Invalid window"],
+    ["10:14:48.330","info","422","runningboardd","RunningBoard","com.apple.runningboard","assertion","0x1d220","0","Acquiring assertion targeting [app<Finder>] from originator"],
+    ["10:14:47.115","error","583","searchpartyd","CoreLocation","com.apple.icloud.searchparty","beacon","0x2a991","0","No BeaconStoreActor available!"]
+  ];
+  function chip(t){return '<span class="chip '+(t==='error'?'error':t==='fault'?'fault':t==='debug'?'debug':'info')+'">'+t.toUpperCase()+'</span>'}
+  function fill(){
+    const lb=document.getElementById('logbody');
+    const sb=document.getElementById('streambody');
+    let l='',s='';
+    for(let i=0;i<60;i++){const r=ROWS[i%ROWS.length];
+      l+=`<tr><td class="mono" style="color:var(--dim)">${r[0]}</td><td>${chip(r[1])}</td><td class="num-r"><button class="pidlink" onclick="openDrawer()">${r[2]}</button></td><td class="proc mono">${r[3]}</td><td class="mono" style="color:var(--subtle)">${r[4]}</td><td class="mono" style="color:var(--subtle)">${r[5]}</td><td class="mono" style="color:var(--dim)">${r[6]}</td><td class="mono" style="color:var(--dim)">${r[7]}</td><td class="mono" style="color:var(--dim)">${r[8]}</td><td class="msg mono">${r[9]}</td></tr>`;
+    }
+    for(let i=0;i<40;i++){const r=ROWS[i%ROWS.length];
+      if(r[1]!=='error'&&r[1]!=='fault')continue;
+      s+=`<tr><td class="mono" style="color:var(--dim)">${r[0]}</td><td>${chip(r[1])}</td><td class="num-r"><button class="pidlink" onclick="openDrawer()">${r[2]}</button></td><td class="proc mono">${r[3]}</td><td class="mono" style="color:var(--subtle)">${r[5]}</td><td class="msg mono">${r[9]}</td></tr>`;
+    }
+    lb.innerHTML=l;sb.innerHTML=s;
+  }
+  document.body.setAttribute('data-theme','light');
+  fill();
+</script>
