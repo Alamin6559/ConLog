@@ -108,6 +108,16 @@ Applications, or run the `.app` straight out of `release/mac-arm64/`.
 Prebuilt `.dmg` files are on the
 [Releases](https://github.com/hash00/ConLog/releases) page.
 
+Releases from v1.0.1 onward are built by GitHub Actions and carry a signed
+build-provenance attestation, so you can confirm a download really was built
+from this repository rather than tampered with:
+
+```bash
+gh attestation verify ConLog-<version>-arm64.dmg --repo hash00/ConLog
+```
+
+(v1.0.0 was built locally and predates this, so it has no attestation.)
+
 These builds are **ad-hoc signed but not notarized** — ConLog has no Apple
 Developer ID. macOS will refuse to open a downloaded copy until you allow it
 explicitly:
