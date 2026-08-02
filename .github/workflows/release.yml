@@ -41,7 +41,10 @@ jobs:
       - run: npm test
 
       - name: Build the app
-        run: npm run build
+        # --publish never: electron-builder otherwise tries to publish to
+        # GitHub by itself when it sees a tag (deprecated, removed in v27).
+        # The upload is handled explicitly at the end of this job.
+        run: npm run build -- --publish never
         env:
           # No Developer ID is available on the runner. Stop electron-builder
           # from hunting for one; build/afterPack.cjs ad-hoc signs instead.

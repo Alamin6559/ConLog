@@ -48,3 +48,7 @@ First release.
   process. The CSP permits no remote origins.
 - Fonts are bundled rather than fetched from Google, so the app makes no network
   requests and works fully offline.
+
+[Unreleased]: https://github.com/hash00/ConLog/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/hash00/ConLog/releases/tag/v1.0.1
+[1.0.0]: https://github.com/hash00/ConLog/releases/tag/v1.0.0
