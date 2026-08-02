@@ -1,7 +1,7 @@
 {
   "name": "conlog",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A macOS Console log viewer with an easy UI — links each log entry's PID to its live process, charts the noise, and explains common errors.",
   "license": "MIT",
   "author": "hash00",

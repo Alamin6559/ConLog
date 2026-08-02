@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-08-02
+
 ### Added
 
 - Releases are now built by GitHub Actions and carry a signed build-provenance
   attestation, verifiable with
-  `gh attestation verify <file> --repo hash00/ConLog`.
+  `gh attestation verify <file> --repo hash00/ConLog`. This lets anyone confirm
+  a downloaded artifact was built from this repository at a given commit, rather
+  than trusting a maintainer's local build.
 
 ## [1.0.0] - 2026-06-27
 
